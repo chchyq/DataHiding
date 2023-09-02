@@ -8,10 +8,11 @@ import java.math.BigInteger;
 
 
 public class PublicKey {
-    private TypeA1Pairing map;
-    private Element P, Q;
-    private BigInteger n;
-    private Field f;
+    private final TypeA1Pairing map;
+    private final Element P;
+    private final Element Q;
+    private final BigInteger n;
+    private final Field<?> f;
 
     public PublicKey(TypeA1Pairing pairing, Element gen, Element point,
                      BigInteger order) {
@@ -38,7 +39,7 @@ public class PublicKey {
         return this.n;
     }
 
-    public Field getField() {
+    public Field<?> getField() {
         return this.f;
     }
 }

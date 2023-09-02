@@ -1,26 +1,28 @@
 package com.company;
 
-import java.awt.image.DataBufferByte;
-import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
-import java.io.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.io.File;
+import java.io.IOException;
+
 public class Image {
     //方式一：通过getRGB()方式获得像素矩阵
-    public static void getPicArrayData(String path){
-        try{
+    public static void getPicArrayData(String path) {
+        try {
             BufferedImage bimg = ImageIO.read(new File(path));
-            int [][] data = new int[bimg.getWidth()][bimg.getHeight()];
-            for(int i=0;i<bimg.getWidth();i++){
-                for(int j=0;j<bimg.getHeight();j++){
-                    data[i][j]=bimg.getRGB(i,j);
+            int[][] data = new int[bimg.getWidth()][bimg.getHeight()];
+            for (int i = 0; i < bimg.getWidth(); i++) {
+                for (int j = 0; j < bimg.getHeight(); j++) {
+                    data[i][j] = bimg.getRGB(i, j);
                     //输出一列数据比对
-                    if(i==0){
+                    if (i == 0) {
                         String format = String.format("%x", data[i][j]);
                         System.out.println(format);
                     }
                 }
             }
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -53,7 +55,7 @@ public class Image {
             final int pixelLength = 3;
             for (int pixel = 0, row = 0, col = 0; pixel < pixels.length; pixel += pixelLength) {
                 int argb = 0;
-                argb += -16777216; // 255 alpha
+                argb -= 16777216; // 255 alpha
                 argb += ((int) pixels[pixel] & 0xff); // blue
                 argb += (((int) pixels[pixel + 1] & 0xff) << 8); // green
                 argb += (((int) pixels[pixel + 2] & 0xff) << 16); // red
@@ -69,7 +71,7 @@ public class Image {
         return result;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(String[] args) throws IOException {
 //        File file = new File("/Users/chenyingqing/Library/Mobile Documents/com~apple~CloudDocs/Documents/study/ThreeDays/同态加密/bgn_java/LenaRGB.bmp");
         String path = "/Users/chenyingqing/Library/Mobile Documents/com~apple~CloudDocs/Documents/study/ThreeDays/同态加密/bgn_java/LenaRGB.bmp";
 
@@ -88,4 +90,3 @@ public class Image {
         }
     }
 }
-

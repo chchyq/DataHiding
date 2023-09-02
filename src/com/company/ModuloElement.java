@@ -19,7 +19,6 @@ public class ModuloElement<E extends Element, F extends CurveField> extends Curv
 //        System.out.println("Element this="+this);
         BigInteger y =this.y.duplicate().toBigInteger();
         BigInteger two= BigInteger.valueOf(2);
-        BigInteger one= BigInteger.valueOf(1);
         BigInteger res= y.mod(two);
         System.out.println("result of module"+res);
         return res;
