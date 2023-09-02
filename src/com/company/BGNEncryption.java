@@ -3,8 +3,7 @@ package com.company;
 import it.unisa.dia.gas.jpbc.Element;
 import it.unisa.dia.gas.jpbc.Field;
 import it.unisa.dia.gas.jpbc.PairingParameters;
-import it.unisa.dia.gas.plaf.jpbc.field.curve.CurveElement;
-import it.unisa.dia.gas.plaf.jpbc.field.curve.CurveField;
+import it.unisa.dia.gas.plaf.jpbc.field.base.AbstractPointElement;
 import it.unisa.dia.gas.plaf.jpbc.pairing.a1.TypeA1CurveGenerator;
 import it.unisa.dia.gas.plaf.jpbc.pairing.a1.TypeA1Pairing;
 import it.unisa.dia.gas.plaf.jpbc.util.math.BigIntegerUtils;
@@ -17,7 +16,8 @@ import java.util.Objects;
 public class BGNEncryption {
     private BigInteger m_R;
     private BigInteger m_Q; // This is the private key.
-    private BigInteger Rand;
+    private BigInteger m_Prime;
+    private BigInteger m_Rand;
 
     private PairingParameters generateParams(int bits) {
         SecureRandom rng = new SecureRandom();
@@ -26,65 +26,84 @@ public class BGNEncryption {
     }
 
     public PublicKey gen(int bits) {
+        System.out.println("Generating");
+
         PairingParameters param = generateParams(bits);
         TypeA1Pairing pairing = new TypeA1Pairing(param);
-        BigInteger order = param.getBigInteger("n");
 
+        BigInteger order = param.getBigInteger("n");
         m_R = param.getBigInteger("n0");//random number 1
         m_Q = param.getBigInteger("n1");//random number 2
-        System.out.println("r:" + m_R + " q:" + m_Q + " order:" + order);
+        m_Prime = param.getBigInteger("p");
+
+        assert m_R.multiply(m_Q).equals(order);
+        System.out.println("\tr: " + m_R);
+        System.out.println("\tq: " + m_Q);
+        System.out.println("\torder: " + order);
+        System.out.println("\tprime: " + m_Prime);
 
         Field<?> f = pairing.getG1();
         BigInteger l = param.getBigInteger("l");
 
-        Element P = f.newRandomElement();
-        P.mul(l); // P=P^l /* not necessary to do E = E.method()! */
+        System.out.println("Choosing random element");
+
+        Element random_generator = f.newRandomElement();
+        System.out.println("\trandom: " + random_generator);
+
+        random_generator.mul(l); // P=P^l /* not necessary to do E = E.method()! */
+        System.out.println("\tgenerator P: " + random_generator);
 
         //p is prime, not the same as P here. unknown usage of p at least now. n is the order of the group.
-        Element Q = f.newElement();
-        Q.set(P);
-        Q.mul(m_R); // Q=P ^r
+        Element generator_pow_r = f.newElement();
+        generator_pow_r.set(random_generator);
+        generator_pow_r.mul(m_R); // Q = P^r
 
-        System.out.println("P:" + P + " Q:" + Q);
-        return new PublicKey(pairing, P, Q, order);
+        System.out.println("\tgenerator Q: " + generator_pow_r);
+        return new PublicKey(pairing, random_generator, generator_pow_r, order);
     }
 
     public Element encrypt(PublicKey PK, int msg, int secretMSG1) {
-
-//        BigInteger t = BigIntegerUtils.getRandom(PK.getN());//随机数
-//        int secretLeftShift= secretMSG1*1000;
-//        BigInteger t= BigInteger.valueOf(secretLeftShift);
+        System.out.println("Encryption");
+        System.out.println("\tmsg: " + msg);
+        System.out.println("\tsecret: " + secretMSG1);
         BigInteger t = BigInteger.valueOf(secretMSG1);
-        //		System.out.println("Hash is " + m);
         Field<?> f = PK.getField();
+
         Element A = f.newElement();
         Element B = f.newElement();
         Element C = f.newElement();
         A = A.set(PK.getP());
         A = A.mul(BigInteger.valueOf(msg));
+        System.out.println("\tA (PK.P * msg): " + A);
+
         B = B.set(PK.getQ());
         B = B.mul(t);//mul:pow
-//        System.out.println(t);
-        Rand = t;
+        System.out.println("\tB (PK.Q ^ secret): " + B);
+        m_Rand = t;
+
         C = C.set(A);
         C = C.add(B);//multiply
+        System.out.println("\tC (A + B) : " + C);
+
         Element D = f.newElement();
-        D.set(randomChoice(PK, C, 1));
-        System.out.println("New" + D);
+        D.set(randomChoice(PK, C, secretMSG1));
+        System.out.println("\tD (random C): " + D);
         C.set(D);
+
         return C;
     }
 
+    // trying to understand this
     public Element randomChoice(PublicKey PK, Element EnMsg, int secretMSG2) {
         Field<?> f = PK.getField();
         Element B = f.newElement();
-        B = B.set(PK.getQ());//h
+        B = B.set(PK.getQ()); // h
 
         Element C = f.newElement();
         C = C.set(EnMsg);
-        BigInteger aaa = mod(PK, C);
+        BigInteger aaa = mod(C, 2);
         BigInteger sMSG2 = BigInteger.valueOf(secretMSG2);
-        System.out.println("Random Number=" + Rand);
+        System.out.println("Random Number=" + m_Rand);
         if (sMSG2.equals(aaa)) {
             System.out.println("Use the original C=" + C);
             return C;
@@ -103,26 +122,26 @@ public class BGNEncryption {
             BigInteger t = BigInteger.valueOf(rNew);
             B = B.mul(t);//mul:pow
             New = New.add(B);
-            aaa = mod(PK, New);
+            aaa = mod(New, 2);
             if (sMSG2.equals(aaa)) {
                 System.out.println("rMore" + t);
-                Rand = Rand.add(t);
-                System.out.println("Random Number now=" + Rand);
+                m_Rand = m_Rand.add(t);
+                System.out.println("Random Number now=" + m_Rand);
                 C.set(New);
                 break;
             }
             New = New.set(C);
         }
+
         System.out.println("Module of the final result right now=" + aaa);
         System.out.println("secretMSG2=" + sMSG2);
         return C;
     }
 
-    public BigInteger mod(PublicKey PK, Element C) {
-        Field<?> f = PK.getField();
-        ModuloElement<Element, CurveField<?>> moduloElement = new ModuloElement<>(new CurveElement<>((CurveField<?>) f));
-        moduloElement.set(C);
-        return moduloElement.modulo();
+    public BigInteger mod(Element C, int value) {
+        assert C instanceof AbstractPointElement<?, ?>;
+        BigInteger y = ((AbstractPointElement<?, ?>) C).getY().toBigInteger();
+        return y.mod(BigInteger.valueOf(value));
     }
 
     public Element add(PublicKey PK, Element A, Element B) {
@@ -202,9 +221,9 @@ public class BGNEncryption {
         Field<?> f = publicKey.getField();
         Element current = f.newElement();
         current.set(value);
-        System.out.println("Rand" + Rand + " result" + result);
+        System.out.println("Rand" + m_Rand + " result" + result);
 //        assert false;
-        while (!result.equals(Rand)) {
+        while (!result.equals(m_Rand)) {
             current = current.add(base);
 //            System.out.println("current"+current);
             result = result.add(BigInteger.valueOf(1));
@@ -230,14 +249,14 @@ public class BGNEncryption {
 //        System.out.println("C: " + C);
         System.out.println("H: " + H);
 //        System.out.println("m: " + msg);
-        System.out.println("t: " + Rand);
+        System.out.println("t: " + m_Rand);
 
         LpowM.set(L);
         LpowM = LpowM.mul(BigInteger.valueOf(msg));
         System.out.println("L^m: " + LpowM);
 
         HpowT.set(H);
-        HpowT = HpowT.mul(Rand);
+        HpowT = HpowT.mul(m_Rand);
         System.out.println("h^t: " + HpowT);
 
         Element fraction = C.div(LpowM);//C= L^m * H^t
@@ -248,7 +267,7 @@ public class BGNEncryption {
 //        BigInteger correct = logarithm(PK, H, HpowT);
 
         System.out.println("div: " + answer);
-        System.out.println("actual: " + Rand);
+        System.out.println("actual: " + m_Rand);
 //        System.out.println("actual actual: " + correct);
 //        Element msg2=f.newElement();
 //        msg2=msg2.set(BigInteger.valueOf(1));
@@ -256,7 +275,7 @@ public class BGNEncryption {
 //        modRes=modRes.set(C.toBigInteger().mod(BigInteger.valueOf(2)));
 //        System.out.println("modRes:"+modRes);
 
-        assert Objects.equals(answer, Rand);
+        assert Objects.equals(answer, m_Rand);
 
 //        K=K.set(L);
 //        K=K.add(H);
@@ -272,18 +291,9 @@ public class BGNEncryption {
 
     public void Test_1(PublicKey PK, int m) {
         int n = PK.getN().intValue();
-        int tMax = (n - 1) / m_Q.intValue();//tMax = (n-1)/q.intValue();
-//        BigInteger tMax = PK.getN().subtract(BigInteger.ONE).divide(r);
-//        for(int i=2; i<tMax; i+=1){
-////            Element CipherText=b.encrypt(PK,m,110);
-//            Element CipherText=b.encrypt(PK,m,i);
-//            String DecryptStr=b.decrypt(PK,b.q,CipherText);
-//            int decInt = Integer.parseInt(DecryptStr);
-//            String R=b.restoreR(PK,m,CipherText);
-//            System.out.println("r:" + R);
-//        }
-
+        int tMax = (n - 1) / m_R.intValue(); // tMax = (n-1)/q.intValue();
         Element CipherText = encrypt(PK, m, tMax);
+        System.out.println("Got CipherText: " + CipherText);
         String DecryptStr = decrypt(PK, m_Q, CipherText);
         int decInt = Integer.parseInt(DecryptStr);
         String R = restoreR(PK, m, CipherText);
