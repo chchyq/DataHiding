@@ -86,7 +86,7 @@ public class BGNEncryption {
         System.out.println("\tC (A + B) : " + C);
 
         Element D = f.newElement();
-        D.set(randomChoice(PK, C, secretMSG1));
+        D.set(randomChoice(PK, C, 1));
         System.out.println("\tD (random C): " + D);
         C.set(D);
 
