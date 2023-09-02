@@ -15,28 +15,36 @@ import java.util.Objects;
 
 
 public class BGNEncryption {
-    private BigInteger q; // This is the private key.
+    private BigInteger m_R;
+    private BigInteger m_Q; // This is the private key.
     private BigInteger Rand;
 
-    public PublicKey gen(int bits) {
+    private PairingParameters generateParams(int bits) {
         SecureRandom rng = new SecureRandom();
         TypeA1CurveGenerator a1 = new TypeA1CurveGenerator(rng, 2, bits);//// the number of primes，bits:the bit length of each prime
-        PairingParameters param = a1.generate();
+        return a1.generate();
+    }
+
+    public PublicKey gen(int bits) {
+        PairingParameters param = generateParams(bits);
         TypeA1Pairing pairing = new TypeA1Pairing(param);
         BigInteger order = param.getBigInteger("n");
-        BigInteger r = param.getBigInteger("n0");//random number 1
-        q = param.getBigInteger("n1");//random number 2
-        System.out.println("r:" + r + " q:" + q + " order:" + order);
+
+        m_R = param.getBigInteger("n0");//random number 1
+        m_Q = param.getBigInteger("n1");//random number 2
+        System.out.println("r:" + m_R + " q:" + m_Q + " order:" + order);
+
         Field<?> f = pairing.getG1();
-        Element P = f.newRandomElement();
         BigInteger l = param.getBigInteger("l");
-//        System.out.println("P:"+P+" l:"+l);
-        P = P.mul(l);//P=P^l
-//        System.out.println("P:"+P+" l:"+l); //p + 1 = n * l
+
+        Element P = f.newRandomElement();
+        P.mul(l); // P=P^l /* not necessary to do E = E.method()! */
+
         //p is prime, not the same as P here. unknown usage of p at least now. n is the order of the group.
         Element Q = f.newElement();
-        Q = Q.set(P);
-        Q = Q.mul(r);//Q=P ^r
+        Q.set(P);
+        Q.mul(m_R); // Q=P ^r
+
         System.out.println("P:" + P + " Q:" + Q);
         return new PublicKey(pairing, P, Q, order);
     }
@@ -262,9 +270,9 @@ public class BGNEncryption {
 //        return (first.subtract(second)).toString();
     }
 
-    public void Test_1(PublicKey PK, BGNEncryption b, int m) {
+    public void Test_1(PublicKey PK, int m) {
         int n = PK.getN().intValue();
-        int tMax = (n - 50) / q.intValue();//tMax = (n-1)/q.intValue();
+        int tMax = (n - 1) / m_Q.intValue();//tMax = (n-1)/q.intValue();
 //        BigInteger tMax = PK.getN().subtract(BigInteger.ONE).divide(r);
 //        for(int i=2; i<tMax; i+=1){
 ////            Element CipherText=b.encrypt(PK,m,110);
@@ -275,10 +283,10 @@ public class BGNEncryption {
 //            System.out.println("r:" + R);
 //        }
 
-        Element CipherText = b.encrypt(PK, m, tMax);
-        String DecryptStr = b.decrypt(PK, b.q, CipherText);
+        Element CipherText = encrypt(PK, m, tMax);
+        String DecryptStr = decrypt(PK, m_Q, CipherText);
         int decInt = Integer.parseInt(DecryptStr);
-        String R = b.restoreR(PK, m, CipherText);
+        String R = restoreR(PK, m, CipherText);
         System.out.println("r:" + R);
     }
 
@@ -289,7 +297,7 @@ public class BGNEncryption {
         Element msg2 = b.encrypt(PK, n, 110);
         int len6 = msg2.getLengthInBytes();
         Element add = b.add(PK, msg1, msg2);
-        String jiemiAdd = b.decrypt(PK, b.q, add);
+        String jiemiAdd = b.decrypt(PK, b.m_Q, add);
         int decAdd = Integer.parseInt(jiemiAdd);
         if (decAdd != m + n) {
             System.out.println("m:" + m);
@@ -300,7 +308,7 @@ public class BGNEncryption {
 //		double t5 = System.currentTimeMillis();
         if (n != 0) {
             Element mul = b.mul(PK, msg1, msg2);
-            String jiemiMul = b.decryptMul(PK, b.q, mul);
+            String jiemiMul = b.decryptMul(PK, b.m_Q, mul);
             int decMul = Integer.parseInt(jiemiMul);
 //		double t6 = System.currentTimeMillis();
 //		System.out.println("一次同态乘法的时间"+(t6-t5)+"ms");

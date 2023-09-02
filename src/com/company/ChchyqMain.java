@@ -28,7 +28,7 @@ public class ChchyqMain {
 //            b.Test_1(PK,b,i);
 //            i+=1;
 //        }
-        b.Test_1(PK, b, 0);
+        b.Test_1(PK, 0);
 //        Validation experiment
 //        while(i<=255){
 //            b.Test(PK,b,i,0,len1,len2,len3);
