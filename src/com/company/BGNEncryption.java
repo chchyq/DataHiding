@@ -92,8 +92,9 @@ public class BGNEncryption {
         C = C.set(EnMsg);
         BigInteger aaa = mod(PK,C);
         BigInteger sMSG2 = BigInteger.valueOf(secretMSG2);
-        if(aaa==sMSG2){
-            System.out.println("Use the original C");
+        System.out.println("Random Number="+Rand);
+        if(sMSG2.equals(aaa)){
+            System.out.println("Use the original C="+C);
             return C;
         }
         Element New = f.newElement();
@@ -250,7 +251,7 @@ public class BGNEncryption {
         HpowT = HpowT.mul(Rand);
         System.out.println("h^t: " + HpowT);
 
-        Element fraction = C.sub(LpowM);//C= L^m * H^t
+        Element fraction = C.div(LpowM);//C= L^m * H^t
         System.out.println("H: " + H);
         System.out.println("fraction=C- L^m=H^t："+fraction);
         BigInteger answer = logarithm2(PK, H, fraction, BigInteger.ONE);
@@ -358,14 +359,14 @@ public void Test(PublicKey PK, BGNEncryption b,int m,int n,int len1,int len2,int
         int i=0;
 
 //        b.Test(PK,b,1,0,len1,len2,len3);
-
-        while(i<=255){
-            System.out.println("-------------------------------New pixel---------------------------------");
-            System.out.println("i:"+i);
-            b.Test_1(PK,b,i);
-            i+=1;
-        }
-//        b.Test_1(PK,b,0);
+//
+//        while(i<=255){
+//            System.out.println("-------------------------------New pixel---------------------------------");
+//            System.out.println("i:"+i);
+//            b.Test_1(PK,b,i);
+//            i+=1;
+//        }
+        b.Test_1(PK,b,0);
 //        Validation experiment
 //        while(i<=255){
 //            b.Test(PK,b,i,0,len1,len2,len3);

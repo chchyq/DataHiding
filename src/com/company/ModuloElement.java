@@ -11,9 +11,9 @@ public class ModuloElement<E extends Element, F extends CurveField> extends Curv
     public ModuloElement(CurveElement<E, F> curveElement) {
         super(curveElement);
     }
-
 //    public CurveElement<E, F> modulo() {
     public BigInteger modulo() {
+// Use the y of the element to calculate module result
         System.out.println("Module Process Start");
         System.out.println("BigInteger: this.y="+this.y.duplicate().toBigInteger());
 //        System.out.println("Element this="+this);
@@ -21,7 +21,7 @@ public class ModuloElement<E extends Element, F extends CurveField> extends Curv
         BigInteger two= BigInteger.valueOf(2);
         BigInteger one= BigInteger.valueOf(1);
         BigInteger res= y.mod(two);
-        System.out.println("res of module"+res);
+        System.out.println("result of module"+res);
         return res;
     }
 }
