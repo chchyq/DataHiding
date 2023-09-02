@@ -282,7 +282,7 @@ public class BGNEncryption {
     }
     public void Test_1(PublicKey PK,BGNEncryption b,int m){
         int n = PK.getN().intValue();
-        int tMax = (n-9)/q.intValue();//tMax = (n-1)/q.intValue();
+        int tMax = (n-50)/q.intValue();//tMax = (n-1)/q.intValue();
 //        BigInteger tMax = PK.getN().subtract(BigInteger.ONE).divide(r);
 //        for(int i=2; i<tMax; i+=1){
 ////            Element CipherText=b.encrypt(PK,m,110);
