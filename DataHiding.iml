@@ -10,11 +10,11 @@
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
-          <root url="file://$MODULE_DIR$/../jpbc-2.0.0/jars" />
+          <root url="file://$USER_HOME$/Library/Mobile Documents/com~apple~CloudDocs/Documents/study/ThreeDays/同态加密/jpbc-2.0.0/jars" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
-        <jarDirectory url="file://$MODULE_DIR$/../jpbc-2.0.0/jars" recursive="false" />
+        <jarDirectory url="file://$USER_HOME$/Library/Mobile Documents/com~apple~CloudDocs/Documents/study/ThreeDays/同态加密/jpbc-2.0.0/jars" recursive="false" />
       </library>
     </orderEntry>
   </component>

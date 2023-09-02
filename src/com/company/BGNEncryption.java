@@ -122,20 +122,6 @@ public class BGNEncryption {
         }
         System.out.println("Module of the final result right now="+aaa);
         System.out.println("secretMSG2="+sMSG2);
-//        while (!sMSG2.isEqual(aaa)){
-//            Random random = new Random();
-//            int r =  random.nextInt(7);
-//
-//            String str = Integer.toBinaryString(r);
-//            int R = Integer.parseInt(str);
-//
-//            BigInteger t= BigInteger.valueOf(R);
-//            B = B.mul(t);//mul:pow
-//            Element New = f.newElement();
-//            New.set(B);
-//            C.add(B);
-//            aaa.set(mod(PK,New));
-//        }
         return C;
     }
 
@@ -198,16 +184,16 @@ public class BGNEncryption {
         T = T.mul(sk);
         K = K.set(C);
         K = K.mul(sk);
-        BigInteger k = logarithm(PK, T, K);
+        BigInteger k = logarithm(PK, T, K, BigInteger.ONE);
         return k.toString();
     }
 
-    private BigInteger logarithm(PublicKey publicKey, Element base, Element value) {
+    private BigInteger logarithm(PublicKey publicKey, Element base, Element value, BigInteger start) {
         //to find the first one that equals R and in the group
         Field gen = publicKey.getField();
         Element current = gen.newElement();
         current.set(base);
-        BigInteger result = new BigInteger("1");
+        BigInteger result = start;
         while (!current.isEqual(value)) {
             // This is a brute force implementation of finding the discrete
             // logarithm.
@@ -220,13 +206,14 @@ public class BGNEncryption {
         System.out.println("value:"+value+" current:"+current+" res:"+result);
         return result;
     }
-    private BigInteger logarithm2(PublicKey publicKey, Element base, Element value) {
+    private BigInteger logarithm2(PublicKey publicKey, Element base, Element value, BigInteger start) {
         //if the random number exceed the group and cannot find the random number, use the acknoledged Rand to find it back and to test how many rounds
-        BigInteger result=logarithm(publicKey,base,value);
+        BigInteger result=logarithm(publicKey,base,value,start);
         Field f=publicKey.getField();
         Element current=f.newElement();
         current.set(value);
         System.out.println("Rand"+Rand+" result"+result);
+//        assert false;
         while(!result.equals(Rand)){
             current = current.add(base);
 //            System.out.println("current"+current);
@@ -239,7 +226,7 @@ public class BGNEncryption {
         return result;
     }
 
-    public String restoreR(PublicKey PK, int msg, Element C){
+    public String restoreR(PublicKey PK, BigInteger q, int msg, Element C){
         //function that restore random number R
         Field f= PK.getField();
         Element L = f.newElement();
@@ -249,11 +236,11 @@ public class BGNEncryption {
         L = L.set(PK.getP());
         H = H.set(PK.getQ());
 //
-//        System.out.println("L: " + L);
+        System.out.println("L: " + L);
 //        System.out.println("C: " + C);
-//        System.out.println("H: " + H);
+        System.out.println("H: " + H);
 //        System.out.println("m: " + msg);
-//        System.out.println("t: " + Rand);
+        System.out.println("t: " + Rand);
 
         LpowM.set(L);
         LpowM = LpowM.mul(BigInteger.valueOf(msg));
@@ -264,7 +251,9 @@ public class BGNEncryption {
         System.out.println("h^t: " + HpowT);
 
         Element fraction = C.sub(LpowM);//C= L^m * H^t
-        BigInteger answer = logarithm2(PK, H, fraction);
+        System.out.println("H: " + H);
+        System.out.println("fraction=C- L^m=H^t："+fraction);
+        BigInteger answer = logarithm2(PK, H, fraction, BigInteger.ONE);
 
 //        BigInteger correct = logarithm(PK, H, HpowT);
 
@@ -284,15 +273,15 @@ public class BGNEncryption {
 //        J=J.set(H);
         System.out.println(C);
         System.out.println(L);
-        BigInteger first = logarithm(PK, H, C);
-        assert false;
-        BigInteger second = logarithm2(PK, H, L);
-
-        return (first.subtract(second)).toString();
+//        BigInteger first = logarithm(PK, H, C);
+//        assert false;
+//        BigInteger second = logarithm2(PK, H, L);
+        return answer.toString();
+//        return (first.subtract(second)).toString();
     }
     public void Test_1(PublicKey PK,BGNEncryption b,int m){
         int n = PK.getN().intValue();
-        int tMax = (n-2)/r.intValue();//tMax = (n-1)/r.intValue();
+        int tMax = (n-9)/q.intValue();//tMax = (n-1)/q.intValue();
 //        BigInteger tMax = PK.getN().subtract(BigInteger.ONE).divide(r);
 //        for(int i=2; i<tMax; i+=1){
 ////            Element CipherText=b.encrypt(PK,m,110);
@@ -306,7 +295,7 @@ public class BGNEncryption {
         Element CipherText=b.encrypt(PK,m,tMax);
         String DecryptStr=b.decrypt(PK,b.q,CipherText);
         int decInt = Integer.parseInt(DecryptStr);
-        String R=b.restoreR(PK,m,CipherText);
+        String R=b.restoreR(PK,b.q,m,CipherText);
         System.out.println("r:" + R);
     }
 
@@ -336,7 +325,7 @@ public void Test(PublicKey PK, BGNEncryption b,int m,int n,int len1,int len2,int
             System.out.println("m:" + m);
             System.out.println("n:" + n);
         }
-        String R = b.restoreR(PK, m + n, add);
+        String R = b.restoreR(PK, b.q, m + n, add);
         System.out.println("r:" + R);
 //        System.out.println("Mul: " + jiemiMul);
 //        int len5 = mul.getLengthInBytes();
@@ -369,8 +358,12 @@ public void Test(PublicKey PK, BGNEncryption b,int m,int n,int len1,int len2,int
         int i=0;
 
 //        b.Test(PK,b,1,0,len1,len2,len3);
+
         while(i<=255){
+            System.out.println("-------------------------------New pixel---------------------------------");
+            System.out.println("i:"+i);
             b.Test_1(PK,b,i);
+            i+=1;
         }
 //        b.Test_1(PK,b,0);
 //        Validation experiment
