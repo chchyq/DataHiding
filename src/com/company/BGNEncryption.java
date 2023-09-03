@@ -112,6 +112,7 @@ public class BGNEncryption {
             System.out.println("\tUse the original CipherText=" + C);
             return C;
         }
+
         System.out.println("Different! RandomChoice started");
         System.out.println("\tBefore changing, current C =" + C);
 
