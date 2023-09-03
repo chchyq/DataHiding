@@ -9,6 +9,8 @@ import it.unisa.dia.gas.plaf.jpbc.pairing.a1.TypeA1Pairing;
 import it.unisa.dia.gas.plaf.jpbc.util.math.BigIntegerUtils;
 
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.util.Objects;
 
@@ -19,9 +21,12 @@ public class BGNEncryption {
     private BigInteger m_Prime;
     private BigInteger m_Rand;
 
-    public PublicKey gen(int bits) {
+    public PublicKey gen(int bits) throws NoSuchAlgorithmException, NoSuchProviderException {
         System.out.println("Generating");
-        SecureRandom rng = new SecureRandom(new byte[]{(byte) 0xDE, (byte) 0xAD, (byte) 0xBA, (byte) 0xBA});
+
+        SecureRandom rng = SecureRandom.getInstance("SHA1PRNG", "SUN");
+        rng.setSeed(new byte[]{0x50});
+
         TypeA1CurveGenerator a1 = new TypeA1CurveGenerator(rng, 2, bits);//// the number of primes，bits:the bit length of each prime
         PairingParameters param = a1.generate();
         TypeA1Pairing pairing = new TypeA1Pairing(rng, param);
