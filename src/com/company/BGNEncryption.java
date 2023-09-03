@@ -113,29 +113,28 @@ public class BGNEncryption {
             return C;
         }
         System.out.println("Different! RandomChoice started");
-        Element New = f.newElement();
-        New = New.set(C);
         System.out.println("\tBefore changing, current C =" + C);
-        int rNew;
 
         for (int i = 1; i < 8; i++) {
+            Element NewC = f.newElement();
+            NewC.set(C);
 
-            rNew = i;
-//            String str = Integer.toBinaryString(rNew);
-//            int R = Integer.parseInt(str);
-//            BigInteger t= BigInteger.valueOf(R);
-            BigInteger t = BigInteger.valueOf(rNew);
-            B = B.mul(t);//mul:pow
-            New = New.add(B);
-            modRes = mod(New, 2);
+            Element NewB = f.newElement();
+            NewB.set(B);
+
+            BigInteger AddedT = BigInteger.valueOf(i);
+
+            NewB.mul(AddedT);
+            NewC = NewC.add(B);
+            modRes = mod(NewC, 2);
+
             if (sMSG2.equals(modRes)) {
-                System.out.println("\tadd " + t+" to Random Number");
-                m_Rand = m_Rand.add(t);
+                System.out.println("\tadd " + AddedT +" to Random Number");
+                m_Rand = m_Rand.add(AddedT);
                 System.out.println("\tRandom Number now=" + m_Rand);
-                C.set(New);
+                C.set(NewC);
                 break;
             }
-            New = New.set(C);
         }
 
         System.out.println("\tModule of the final result now=" + modRes);
