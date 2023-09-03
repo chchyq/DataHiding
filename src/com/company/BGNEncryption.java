@@ -109,13 +109,13 @@ public class BGNEncryption {
         System.out.println("\tResult of module: "+modRes);
         System.out.println("\tsecretMSG2: "+sMSG2);
         if (sMSG2.equals(modRes)) {
-            System.out.println("Use the original CipherText=" + C);
+            System.out.println("\tUse the original CipherText=" + C);
             return C;
         }
         System.out.println("Different! RandomChoice started");
         Element New = f.newElement();
         New = New.set(C);
-        System.out.println("before choosing current C =" + C);
+        System.out.println("\tBefore changing, current C =" + C);
         int rNew;
 
         for (int i = 1; i < 8; i++) {
@@ -129,17 +129,17 @@ public class BGNEncryption {
             New = New.add(B);
             modRes = mod(New, 2);
             if (sMSG2.equals(modRes)) {
-                System.out.println("rMore" + t);
+                System.out.println("\trMore" + t);
                 m_Rand = m_Rand.add(t);
-                System.out.println("Random Number now=" + m_Rand);
+                System.out.println("\tRandom Number now=" + m_Rand);
                 C.set(New);
                 break;
             }
             New = New.set(C);
         }
 
-        System.out.println("Module of the final result right now=" + modRes);
-        System.out.println("secretMSG2=" + sMSG2);
+        System.out.println("\tModule of the final result right now=" + modRes);
+        System.out.println("\tsecretMSG2=" + sMSG2);
         return C;
     }
 
@@ -190,6 +190,7 @@ public class BGNEncryption {
     }
 
     public String decrypt(PublicKey PK, BigInteger sk, Element C) {
+        System.out.println("Decryption");
         Field<?> f = PK.getField();
         Element T = f.newElement();
         Element K = f.newElement();
@@ -216,7 +217,7 @@ public class BGNEncryption {
 //            System.out.println("current"+current);
             result = result.add(BigInteger.valueOf(1));
         }
-        System.out.println("value:" + value + " current:" + current + " res:" + result);
+        System.out.println("\tvalue:" + value + " current:" + current + " res:" + result);
         return result;
     }
 
@@ -226,21 +227,22 @@ public class BGNEncryption {
         Field<?> f = publicKey.getField();
         Element current = f.newElement();
         current.set(value);
-        System.out.println("Rand" + m_Rand + " result" + result);
+        System.out.println("\tRand" + m_Rand + " result" + result);
 //        assert false;
         while (!result.equals(m_Rand)) {
             current = current.add(base);
 //            System.out.println("current"+current);
             result = result.add(BigInteger.valueOf(1));
             if (current.isEqual(value)) {
-                System.out.println("value:" + value + " current:" + current + " res:" + result);
+                System.out.println("\tvalue:" + value + " current:" + current + " res:" + result);
             }
         }
-        System.out.println("value:" + value + " current:" + current + " res:" + result);
+        System.out.println("\tvalue:" + value + " current:" + current + " res:" + result);
         return result;
     }
 
     public String restoreR(PublicKey PK, int msg, Element C) {
+        System.out.println("Restore secret messge");
         //function that restore random number R
         Field<?> f = PK.getField();
         Element L = f.newElement();
@@ -250,29 +252,27 @@ public class BGNEncryption {
         L = L.set(PK.getP());
         H = H.set(PK.getQ());
 //
-        System.out.println("L: " + L);
+//        System.out.println("\tL: " + L);
 //        System.out.println("C: " + C);
-        System.out.println("H: " + H);
+//        System.out.println("\tH: " + H);
 //        System.out.println("m: " + msg);
-        System.out.println("t: " + m_Rand);
 
         LpowM.set(L);
         LpowM = LpowM.mul(BigInteger.valueOf(msg));
-        System.out.println("L^m: " + LpowM);
+        System.out.println("\tL^m: " + LpowM);
 
         HpowT.set(H);
         HpowT = HpowT.mul(m_Rand);
-        System.out.println("h^t: " + HpowT);
+        System.out.println("\th^t: " + HpowT);
 
         Element fraction = C.div(LpowM);//C= L^m * H^t
-        System.out.println("H: " + H);
-        System.out.println("fraction=C- L^m=H^t：" + fraction);
+        System.out.println("\tfraction = C - L^m = H^t：" + fraction);
         BigInteger answer = logarithm2(PK, H, fraction);
 
 //        BigInteger correct = logarithm(PK, H, HpowT);
 
-        System.out.println("div: " + answer);
-        System.out.println("actual: " + m_Rand);
+        System.out.println("\tsecretMsg found: " + answer);
+        System.out.println("\tactual secretMsg: " + m_Rand);
 //        System.out.println("actual actual: " + correct);
 //        Element msg2=f.newElement();
 //        msg2=msg2.set(BigInteger.valueOf(1));
@@ -282,16 +282,7 @@ public class BGNEncryption {
 
         assert Objects.equals(answer, m_Rand);
 
-//        K=K.set(L);
-//        K=K.add(H);
-//        J=J.set(H);
-        System.out.println(C);
-        System.out.println(L);
-//        BigInteger first = logarithm(PK, H, C);
-//        assert false;
-//        BigInteger second = logarithm2(PK, H, L);
         return answer.toString();
-//        return (first.subtract(second)).toString();
     }
 
     public void Test_1(PublicKey PK, int m) {
@@ -302,7 +293,6 @@ public class BGNEncryption {
         String DecryptStr = decrypt(PK, m_Q, CipherText);
         int decInt = Integer.parseInt(DecryptStr);
         String R = restoreR(PK, m, CipherText);
-        System.out.println("r:" + R);
     }
 
     public void Test(PublicKey PK, BGNEncryption b, int m, int n) {
