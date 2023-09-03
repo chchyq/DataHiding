@@ -63,6 +63,8 @@ public class BGNEncryption {
     }
 
     public Element encrypt(PublicKey PK, int msg, int secretMSG1) {
+//        msg > 0
+//        secretMSG1
         System.out.println("Encryption");
         System.out.println("\tmsg: " + msg);
         System.out.println("\tsecret: " + secretMSG1);
@@ -95,19 +97,22 @@ public class BGNEncryption {
 
     // trying to understand this
     public Element randomChoice(PublicKey PK, Element EnMsg, int secretMSG2) {
+        System.out.println("Choose Ciphertext according to secretMSG2");
         Field<?> f = PK.getField();
         Element B = f.newElement();
         B = B.set(PK.getQ()); // h
 
         Element C = f.newElement();
         C = C.set(EnMsg);
-        BigInteger aaa = mod(C, 2);
+        BigInteger modRes = mod(C, 2);
         BigInteger sMSG2 = BigInteger.valueOf(secretMSG2);
-        System.out.println("Random Number=" + m_Rand);
-        if (sMSG2.equals(aaa)) {
-            System.out.println("Use the original C=" + C);
+        System.out.println("\tResult of module: "+modRes);
+        System.out.println("\tsecretMSG2: "+sMSG2);
+        if (sMSG2.equals(modRes)) {
+            System.out.println("Use the original CipherText=" + C);
             return C;
         }
+        System.out.println("Different! RandomChoice started");
         Element New = f.newElement();
         New = New.set(C);
         System.out.println("before choosing current C =" + C);
@@ -122,8 +127,8 @@ public class BGNEncryption {
             BigInteger t = BigInteger.valueOf(rNew);
             B = B.mul(t);//mul:pow
             New = New.add(B);
-            aaa = mod(New, 2);
-            if (sMSG2.equals(aaa)) {
+            modRes = mod(New, 2);
+            if (sMSG2.equals(modRes)) {
                 System.out.println("rMore" + t);
                 m_Rand = m_Rand.add(t);
                 System.out.println("Random Number now=" + m_Rand);
@@ -133,7 +138,7 @@ public class BGNEncryption {
             New = New.set(C);
         }
 
-        System.out.println("Module of the final result right now=" + aaa);
+        System.out.println("Module of the final result right now=" + modRes);
         System.out.println("secretMSG2=" + sMSG2);
         return C;
     }
