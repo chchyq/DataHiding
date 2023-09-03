@@ -19,17 +19,12 @@ public class BGNEncryption {
     private BigInteger m_Prime;
     private BigInteger m_Rand;
 
-    private PairingParameters generateParams(int bits) {
-        SecureRandom rng = new SecureRandom();
-        TypeA1CurveGenerator a1 = new TypeA1CurveGenerator(rng, 2, bits);//// the number of primes，bits:the bit length of each prime
-        return a1.generate();
-    }
-
     public PublicKey gen(int bits) {
         System.out.println("Generating");
-
-        PairingParameters param = generateParams(bits);
-        TypeA1Pairing pairing = new TypeA1Pairing(param);
+        SecureRandom rng = new SecureRandom(new byte[]{(byte) 0xDE, (byte) 0xAD, (byte) 0xBA, (byte) 0xBA});
+        TypeA1CurveGenerator a1 = new TypeA1CurveGenerator(rng, 2, bits);//// the number of primes，bits:the bit length of each prime
+        PairingParameters param = a1.generate();
+        TypeA1Pairing pairing = new TypeA1Pairing(rng, param);
 
         BigInteger order = param.getBigInteger("n");
         m_R = param.getBigInteger("n0");//random number 1
