@@ -256,6 +256,8 @@ public class BGNEncryption {
         Element LpowM = f.newElement();
         L = L.set(PK.getP());
         H = H.set(PK.getQ());
+        System.out.println("\tL: "+L);
+        System.out.println("\tH: "+H);
 
         LpowM.set(L);
         LpowM = LpowM.mul(BigInteger.valueOf(msg));
