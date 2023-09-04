@@ -23,9 +23,10 @@ public class BGNEncryption {
 
     public PublicKey gen(int bits) throws NoSuchAlgorithmException, NoSuchProviderException {
         System.out.println("Generating");
+        SecureRandom rng = new SecureRandom();
 
-        SecureRandom rng = SecureRandom.getInstance("SHA1PRNG", "SUN");
-        rng.setSeed(new byte[]{0x50});
+//        SecureRandom rng = SecureRandom.getInstance("SHA1PRNG", "SUN");
+//        rng.setSeed(new byte[]{0x50});
 
         TypeA1CurveGenerator a1 = new TypeA1CurveGenerator(rng, 2, bits);//// the number of primes，bits:the bit length of each prime
         PairingParameters param = a1.generate();
@@ -234,6 +235,7 @@ public class BGNEncryption {
         Field<?> f = publicKey.getField();
         Element current = f.newElement();
         current.set(value);
+        assert Objects.equals(result, m_Rand);
 
         while (!result.equals(m_Rand)) {
             current = current.add(base);
@@ -256,19 +258,17 @@ public class BGNEncryption {
         Element LpowM = f.newElement();
         L = L.set(PK.getP());
         H = H.set(PK.getQ());
-        System.out.println("\tL: "+L);
-        System.out.println("\tH: "+H);
 
         LpowM.set(L);
         LpowM = LpowM.mul(BigInteger.valueOf(msg));
-        System.out.println("\tL^m: " + LpowM);
+//        System.out.println("\tL^m: " + LpowM);
 
         HpowT.set(H);
         HpowT = HpowT.mul(m_Rand);
-        System.out.println("\th^t: " + HpowT);
+//        System.out.println("\th^t: " + HpowT);
 
         Element fraction = C.div(LpowM);//C= L^m * H^t
-        System.out.println("\tfraction = C - L^m = H^t：" + fraction);
+//        System.out.println("\tfraction = C - L^m = H^t：" + fraction);
         BigInteger answer = logarithm2(PK, H, fraction);
 
 //        BigInteger correct = logarithm(PK, H, HpowT);
@@ -290,8 +290,6 @@ public class BGNEncryption {
     public void Test_1(PublicKey PK, int m) {
         BigInteger n = PK.getN();
         BigInteger tMax = (PK.getN().subtract(BigInteger.valueOf(9))).divide(m_R); // tMax = (n-1)/q.intValue();
-//        System.out.println("Original Value: n: "+ PK.getN() +" q: "+m_R);
-//        System.out.println("Int value: n:"+n+"  q: "+m_R.intValue()+"  tMax: "+tMax);
         Element CipherText = encrypt(PK, m, tMax);
         System.out.println("Got CipherText: " + CipherText);
         String DecryptStr = decrypt(PK, m_Q, CipherText);
