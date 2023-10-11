@@ -286,6 +286,12 @@ public class BGNEncryption {
 
         return answer.toString();
     }
+    public BigInteger publicKey(){
+        return m_R;
+    }
+    public BigInteger privateKey(){
+        return m_Q;
+    }
 
     public void Test_1(PublicKey PK, int m) {
         BigInteger n = PK.getN();

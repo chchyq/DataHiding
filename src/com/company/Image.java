@@ -76,14 +76,16 @@ public class Image {
         String path = "/Users/chenyingqing/Library/Mobile Documents/com~apple~CloudDocs/Documents/study/ThreeDays/同态加密/bgn_java/LenaRGB.bmp";
 
         //方式一
-        getPicArrayData(path);
+//        getPicArrayData(path);
         //方式二
+
+        System.out.println("Method 2");
         int[][] ints = convertTo2DWithoutUsingGetRGB(path);
         for (int i = 0; i < ints.length; i++) {
             for (int j = 0; j < ints[i].length; j++) {
                 //只打印一列数据
                 if (i == 0) {
-                    String format = String.format("%x", ints[i][j]);
+                    String format = String.format("%d", ints[i][j]);
                     System.out.println(format);
                 }
             }
