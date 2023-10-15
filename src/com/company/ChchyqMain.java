@@ -14,6 +14,7 @@ public class ChchyqMain {
         PublicKey PK = b.gen(20);//20
         String filePath = "/Users/chenyingqing/Library/Mobile Documents/com~apple~CloudDocs/Documents/study/ThreeDays/同态加密/bgn_java";
         String picPath = filePath+"/LenaRGB.bmp";
+//        b.Test_1(PK, 29);
 
         Gray ima = new Gray();
         int[] GrayImage = ima.GrayImage(filePath, picPath);
@@ -31,15 +32,18 @@ public class ChchyqMain {
         }
         int []RecoverImg = new int [size];
         for(int i=2; i<size+2; i++){
-            String DecryptStr = b.decrypt(PK, b.privateKey(), CipherImg[i]);
+            String DecryptStr = b.decrypt(PK, b.privateKey(), CipherImg[i-2]);
+//            System.out.println("Decrypt result: "+DecryptStr);
+//            System.out.println("Original plaintext: "+GrayImage[i]);
             if(GrayImage[i] == Integer.parseInt(DecryptStr)){
                 System.out.println("Decryption success");
                 int decInt = Integer.parseInt(DecryptStr);
                 RecoverImg[i+2] = decInt;
-                String R = b.restoreR(PK, GrayImage[i], CipherImg[i+2]);
+                String R = b.restoreR(PK, GrayImage[i], CipherImg[i-2]);
             }
             else{
                 System.out.println("fail in decryption");
+                break;
             }
         }
         ima.imgSave(RecoverImg,filePath);
