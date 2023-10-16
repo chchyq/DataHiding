@@ -23,9 +23,10 @@ public class BGNEncryption {
 
     public PublicKey gen(int bits) throws NoSuchAlgorithmException, NoSuchProviderException {
         System.out.println("Generating");
+        SecureRandom rng = new SecureRandom();
 
-        SecureRandom rng = SecureRandom.getInstance("SHA1PRNG", "SUN");
-        rng.setSeed(new byte[]{0x50});
+//        SecureRandom rng = SecureRandom.getInstance("SHA1PRNG", "SUN");
+//        rng.setSeed(new byte[]{0x50});
 
         TypeA1CurveGenerator a1 = new TypeA1CurveGenerator(rng, 2, bits);//// the number of primes，bits:the bit length of each prime
         PairingParameters param = a1.generate();
@@ -131,8 +132,8 @@ public class BGNEncryption {
 
             if (sMSG2.equals(modRes)) {
                 System.out.println("\tadd " + AddedT +" to Random Number");
-                m_Rand = m_Rand.add(AddedT);
-                System.out.println("\tRandom Number now=" + m_Rand);
+//                m_Rand = m_Rand.add(AddedT);
+//                System.out.println("\tRandom Number now=" + m_Rand);
                 C.set(NewC);
                 break;
             }
@@ -224,25 +225,26 @@ public class BGNEncryption {
     private BigInteger logarithm2(PublicKey publicKey, Element base, Element value) {
         //if the random number exceed the group and cannot find the random number, use the acknoledged Rand to find it back and to test how many rounds
         BigInteger result = logarithm(publicKey, base, value);
-        System.out.println("\tactual secret: "+m_Rand);
+//        System.out.println("\tactual secret: "+m_Rand);
         System.out.println("\tRestored secret Result: "+result);
-        if(result.equals(m_Rand)){
-            System.out.println("success!");
-            return result;
-        }
-        System.out.println("failed! Test how many to get it back! ");
-        Field<?> f = publicKey.getField();
-        Element current = f.newElement();
-        current.set(value);
-
-        while (!result.equals(m_Rand)) {
-            current = current.add(base);
-//            System.out.println("current"+current);
-            result = result.add(BigInteger.valueOf(1));
-            if (current.isEqual(value)) {
-                System.out.println("\tvalue:" + value + " current:" + current + " res:" + result);
-            }
-        }
+//        if(result.equals(m_Rand)){
+//            System.out.println("success!");
+//            return result;
+//        }
+//        System.out.println("failed! Test how many to get it back! ");
+//        Field<?> f = publicKey.getField();
+//        Element current = f.newElement();
+//        current.set(value);
+//        assert Objects.equals(result, m_Rand);
+//
+//        while (!result.equals(m_Rand)) {
+//            current = current.add(base);
+////            System.out.println("current"+current);
+//            result = result.add(BigInteger.valueOf(1));
+//            if (current.isEqual(value)) {
+//                System.out.println("\tvalue:" + value + " current:" + current + " res:" + result);
+//            }
+//        }
         return result;
     }
 
@@ -256,25 +258,23 @@ public class BGNEncryption {
         Element LpowM = f.newElement();
         L = L.set(PK.getP());
         H = H.set(PK.getQ());
-        System.out.println("\tL: "+L);
-        System.out.println("\tH: "+H);
 
         LpowM.set(L);
         LpowM = LpowM.mul(BigInteger.valueOf(msg));
-        System.out.println("\tL^m: " + LpowM);
+//        System.out.println("\tL^m: " + LpowM);
 
-        HpowT.set(H);
-        HpowT = HpowT.mul(m_Rand);
-        System.out.println("\th^t: " + HpowT);
+//        HpowT.set(H);
+//        HpowT = HpowT.mul(m_Rand);
+//        System.out.println("\th^t: " + HpowT);
 
         Element fraction = C.div(LpowM);//C= L^m * H^t
-        System.out.println("\tfraction = C - L^m = H^t：" + fraction);
+//        System.out.println("\tfraction = C - L^m = H^t：" + fraction);
         BigInteger answer = logarithm2(PK, H, fraction);
 
 //        BigInteger correct = logarithm(PK, H, HpowT);
 
         System.out.println("\tsecretMsg found: " + answer);
-        System.out.println("\tactual secretMsg: " + m_Rand);
+//        System.out.println("\tactual secretMsg: " + m_Rand);
 //        System.out.println("actual actual: " + correct);
 //        Element msg2=f.newElement();
 //        msg2=msg2.set(BigInteger.valueOf(1));
@@ -282,16 +282,20 @@ public class BGNEncryption {
 //        modRes=modRes.set(C.toBigInteger().mod(BigInteger.valueOf(2)));
 //        System.out.println("modRes:"+modRes);
 
-        assert Objects.equals(answer, m_Rand);
+//        assert Objects.equals(answer, m_Rand);
 
         return answer.toString();
+    }
+    public BigInteger publicKey(){
+        return m_R;
+    }
+    public BigInteger privateKey(){
+        return m_Q;
     }
 
     public void Test_1(PublicKey PK, int m) {
         BigInteger n = PK.getN();
         BigInteger tMax = (PK.getN().subtract(BigInteger.valueOf(9))).divide(m_R); // tMax = (n-1)/q.intValue();
-//        System.out.println("Original Value: n: "+ PK.getN() +" q: "+m_R);
-//        System.out.println("Int value: n:"+n+"  q: "+m_R.intValue()+"  tMax: "+tMax);
         Element CipherText = encrypt(PK, m, tMax);
         System.out.println("Got CipherText: " + CipherText);
         String DecryptStr = decrypt(PK, m_Q, CipherText);
