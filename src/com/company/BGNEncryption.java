@@ -295,14 +295,26 @@ public class BGNEncryption {
 
     public void Test_1(PublicKey PK, int m) {
         BigInteger n = PK.getN();
-        BigInteger tMax = (PK.getN().subtract(BigInteger.valueOf(9))).divide(m_R); // tMax = (n-1)/q.intValue();
+        BigInteger tMax = (PK.getN().subtract(BigInteger.valueOf(1))).divide(m_R); // tMax = (n-1)/q.intValue();
         Element CipherText = encrypt(PK, m, tMax);
         System.out.println("Got CipherText: " + CipherText);
+        long startTime = System.nanoTime();
         String DecryptStr = decrypt(PK, m_Q, CipherText);
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime) / 1000000;
+        System.out.println("time for decrypting：" + duration + "ms");
         if(m == Integer.parseInt(DecryptStr)){
             System.out.println("Decryption success");
             int decInt = Integer.parseInt(DecryptStr);
+            // 记录开始时间
+            startTime = System.nanoTime();
             String R = restoreR(PK, m, CipherText);
+            // 记录结束时间
+            endTime = System.nanoTime();
+
+            // 计算运行时间（以毫秒为单位）
+            duration = (endTime - startTime) / 1000000;
+            System.out.println("time for restoring：" + duration + "ms");
         }
         else{
             System.out.println("fail in decryption");
