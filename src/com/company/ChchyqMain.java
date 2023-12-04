@@ -1,4 +1,4 @@
-package com.company;
+//package src.com.company;
 
 import it.unisa.dia.gas.jpbc.Element;
 
@@ -12,7 +12,7 @@ public class ChchyqMain {
     public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
         BGNEncryption b = new BGNEncryption();
         PublicKey PK = b.gen(20);//20
-        String filePath = "pic";
+        String filePath = "$HOME/DataHiding/pic";
 //        String filePath = "/Users/chenyingqing/Library/Mobile Documents/com~apple~CloudDocs/Documents/study/ThreeDays/同态加密/bgn_java";
         String picPath = filePath+"/LenaRGB.bmp";
 //        b.Test_1(PK, 29);
